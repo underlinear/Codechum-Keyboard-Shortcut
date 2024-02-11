@@ -92,7 +92,7 @@ function pasteText(keyPressed){
         setCaretPosition(cursorPosition + selectedText.indexOf("%CARET"));
     }
     else{
-        cm_ActiveLine.textContent = appendedText;
+        cmActiveLine.textContent = appendedText;
         setCaretPosition(cursorPosition + selectedText.length);
     }
 }
@@ -112,10 +112,10 @@ function getCursorPosition() {
 
 // ChatGPT code below lol
 function setCaretPosition(position) {
-    const cm_activeLine = document.querySelector('.cm-activeLine');
+    const cmActiveLine = document.querySelector('.cm-activeLine');
     const range = document.createRange();
     const sel = window.getSelection();
-    range.setStart(cm_activeLine.firstChild, position);
+    range.setStart(cmActiveLine.firstChild, position);
     range.collapse(true);
     sel.removeAllRanges();
     sel.addRange(range);
