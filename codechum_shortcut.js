@@ -9,59 +9,99 @@
 // @grant        none
 // ==/UserScript==
 
-//Customize your codechum shortcuts on user_shortcuts_array!
+// Customize your codechum shortcuts on user_shortcuts_array!
+// Add %CARET to determine where your text cursor will land after pasting.
 
-(function() {
-    const user_shortcuts_array =
+'use strict';
+
+const user_shortcuts_array =
 [
-// ALT + SHIFT + number in Windows, OPTION + SHIFT + number in MacOS
-
-// 1:
+// 0 )
 `import java.util.Scanner;
 
 public class Main{
     public static void main(String[] args){
         Scanner scan = new Scanner(System.in);
+        %CARET
     }
 }`
+// 1 !
     ,
-// 2:
 `#include <stdio.h>
 
 int main(){
+    %CARET
     return 0;
 }`
     ,
-// 3:
-'System.out.println("");'
-// 4:
+// 2 @
+`System.out.println("%CARET");`
     ,
-'printf("");'
-    ];
-        'use strict';
-        let canAppend = true;
-        window.addEventListener('keydown', (e) => {
-            //Current selected line
-            console.log(`e.key = ${e.key}`);
-            const cm_content = document.addEventListener('.cm-content');
-            const cm_activeLine = document.querySelector('.cm-activeLine');
-            if(canAppend && ((e.altKey && e.shiftKey) || (e.ctrlKey && e.shiftKey)) && !isNaN(Number(e.key))) {
-                cm_activeLine.textContent = cm_activeLine.textContent.slice(0,cursor_position()) + user_shortcuts_array[Number(e.key)] + cm_activeLine.textContent.slice(cursor_position());
-                //Prevent pasting multiple times
-                canAppend = false;
-                /*
-                var sel = window.getSelection();
-                sel?.setPosition(cm_content.childNodes[0], 5);
-                */
+// 3 #
+`printf("%CARET");`
+    ,
+// 4 $
+`for(int i = 0; i < n; i++){
+    %CARET
+} `
+    ,
+// 5 %
+`Custom text not set! `
+    ,
+// 6 ^
+`Custom text not set! `
+    ,
+// 7 &
+`Custom text not set! `
+    ,
+// 8 *
+'Custom text not set! '
+    ,
+// 9 (
+'Custom text not set! '
+];
 
-                setTimeout(() => {
-                    canAppend = true;
-                }, 1000);
-            }
-        })
-    })();
 
-function cursor_position() {
+let canAppend = true;
+
+window.addEventListener('keydown', (e) => {
+    handleKeyDown(e);
+})
+
+function handleKeyDown(event){
+    let keyPressed = ")!@#$%^&*(".indexOf(event.key) !== -1 ? ")!@#$%^&*(".indexOf(event.key) : !isNaN(Number(event.key)) ? Number(event.key) : -1;
+    if(canAppend && ((event.altKey && event.shiftKey) || (event.ctrlKey && event.shiftKey)) && keyPressed !== -1 ) {
+        pasteText(keyPressed);
+
+        canAppend = false;
+        setTimeout(() => {
+            canAppend = true;
+        }, 1000);
+    }
+}
+
+function pasteText(keyPressed){
+    const selectedText = user_shortcuts_array[Number(keyPressed)]
+    const cursorPosition = getCursorPosition();
+    const cmActiveLine = document.querySelector('.cm-activeLine');
+    const appendedText = cmActiveLine.textContent.slice(0, cursorPosition)
+                        + selectedText
+                        + cmActiveLine.textContent.slice(cursorPosition);
+    if(selectedText.includes("%CARET")){
+        cmActiveLine.textContent = appendedText.replace("%CARET",'');
+        setCaretPosition(cursorPosition + selectedText.indexOf("%CARET"));
+    }
+    else{
+        cm_ActiveLine.textContent = appendedText;
+        setCaretPosition(cursorPosition + selectedText.length);
+    }
+}
+
+
+// Not familiar with handling contentEditable carets in HTML so I had to resort to code online lol
+
+// Code from Soubriquet (https://stackoverflow.com/a/54333903)
+function getCursorPosition() {
     var sel = document.getSelection();
     sel.modify("extend", "backward", "paragraphboundary");
     var pos = sel.toString().length;
@@ -69,3 +109,15 @@ function cursor_position() {
 
     return pos;
 }
+
+// ChatGPT code below lol
+function setCaretPosition(position) {
+    const cm_activeLine = document.querySelector('.cm-activeLine');
+    const range = document.createRange();
+    const sel = window.getSelection();
+    range.setStart(cm_activeLine.firstChild, position);
+    range.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(range);
+}
+
