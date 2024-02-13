@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         CodeChum Shortcuts
+// @name         CodeChum Shortcuts v2
 // @namespace    http://tampermonkey.net/
-// @version      2024-02-03
+// @version      2024-02-13
 // @description  Codechum shortcuts
 // @author       weirdo olfu student
 // @match        *://*.codechum.com/*
@@ -14,7 +14,7 @@
 
 'use strict';
 
-const user_shortcuts_array =
+const userShortcutsArray =
 [
 // 0 )
 `import java.util.Scanner;
@@ -81,9 +81,14 @@ function handleKeyDown(event){
 }
 
 function pasteText(keyPressed){
-    const selectedText = user_shortcuts_array[Number(keyPressed)]
-    const cursorPosition = getCursorPosition();
     const cmActiveLine = document.querySelector('.cm-activeLine');
+    const cursorPosition = getCursorPosition();
+    const matchedSpaces = cmActiveLine.textContent.match(/^(\s*)/);
+    const spacesCount = matchedSpaces[1].length;
+    let selectedText = userShortcutsArray[Number(keyPressed)];
+    if(spacesCount > 0){
+        selectedText = addIndentation(selectedText, spacesCount);
+    }
     const appendedText = cmActiveLine.textContent.slice(0, cursorPosition)
                         + selectedText
                         + cmActiveLine.textContent.slice(cursorPosition);
@@ -97,8 +102,16 @@ function pasteText(keyPressed){
     }
 }
 
+function addIndentation(selectedText, spacesCount){
+    let lineSeparatedText = selectedText.split("\n");
+    lineSeparatedText[0] = lineSeparatedText[0] + "\n";
+    for(let i = 1; i < lineSeparatedText.length; i++){
+        lineSeparatedText[i] = ' '.repeat(spaceCount) + lineSeparatedText[i] + (i !== lineSeparatedText.length - 1 ? "\n" : '');
+    }
+    return lineSeparatedText.join("");
+}
 
-// Not familiar with handling contentEditable carets in HTML so I had to resort to code online lol
+// Not familiar with handling contentEditable carets in HTML and couldn't learn it myself so I had to resort to code online (╥ ᴗ ╥)
 
 // Code from Soubriquet (https://stackoverflow.com/a/54333903)
 function getCursorPosition() {
@@ -110,7 +123,7 @@ function getCursorPosition() {
     return pos;
 }
 
-// ChatGPT code below lol
+// ChatGPT code lol
 function setCaretPosition(position) {
     const cmActiveLine = document.querySelector('.cm-activeLine');
     const range = document.createRange();
@@ -120,4 +133,3 @@ function setCaretPosition(position) {
     sel.removeAllRanges();
     sel.addRange(range);
 }
-
